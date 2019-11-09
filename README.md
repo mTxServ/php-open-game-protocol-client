@@ -2,6 +2,8 @@
 
 This is a fork of official PHP OGP client (http://open-game-protocol.org/download.php) for latest version of PHP.
 
+This SDK allow you to retrieve server status of your game server in real time.
+
 # Usage
 
 ```
