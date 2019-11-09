@@ -1,13 +1,13 @@
 # PHP OGP (Open Game Protcol) Client
 
-This is a fork of official client (http://open-game-protocol.org/download.php) for latest version of PHP.
+This is a fork of official PHP OGP client (http://open-game-protocol.org/download.php) for latest version of PHP.
 
 # Usage
 
 ```
 <?php
 
-require_once 'ogp.class.php';
+require_once 'ogp.php';
 
 $ogp = new OGP('127.0.0.1', 27015);
 if(!$ogp->getStatus()) {
@@ -31,3 +31,7 @@ var_dump(
 * Half-Life
 * Battlefield Bad Company 2
 * Just Cause 2 (https://www.jc-mp.com/)
+
+# More tools
+
+* See https://onset-server.com/
