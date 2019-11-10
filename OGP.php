@@ -1,5 +1,7 @@
 <?php
 
+namespace OGP;
+
 class OGP
 {
     /**
@@ -1188,8 +1190,6 @@ class OGP
     public function parseIP($uint)
     {
         if (strlen($uint) < 4) {
-            echo '<b>Warning:</b> String to short in parseIP();<br>';
-
             return false;
         }
 
@@ -1214,8 +1214,6 @@ class OGP
     public function getUint(&$string, $length = 8)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getUint();<br>';
-
             return false;
         }
 
@@ -1265,8 +1263,6 @@ class OGP
     public function getInt(&$string, $length = 8)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getInt();<br>';
-
             return false;
         }
 
@@ -1314,8 +1310,6 @@ class OGP
     public function getVarBitArray(&$string)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getVarBitArray();<br>';
-
             return false;
         }
 
@@ -1357,16 +1351,12 @@ class OGP
     public function VarBitArray_toString($array)
     {
         if (count($array) < 1) {
-            echo '<b>Warning:</b> Empty Array in VarBitArray_toString();<br>';
-
             return false;
         }
 
         $string = '';
         for ($i = 0; $i < count($array); ++$i) {
             if (!isset($array[$i])) {
-                echo '<b>Warning:</b> Array not valid VarBitArray_toString();<br>';
-
                 return false;
             }
 
@@ -1397,15 +1387,11 @@ class OGP
     public function getCharsbyBinary($binary)
     {
         if (strlen($binary) < 1) {
-            echo '<b>Warning:</b> Empty String in getCharsbyBinary();<br>';
-
             return false;
         }
 
         if (strlen($binary) / 8 != floor(strlen($binary) / 8)
         || strlen($binary) / 8 != ceil(strlen($binary) / 8)) {
-            echo '<b>Warning:</b> String must have length that can be devided by 8 in getCharsbyBinary();<br>';
-
             return false;
         }
 
@@ -1432,8 +1418,6 @@ class OGP
     public function getSzString(&$string)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getSzString();<br>';
-
             return false;
         }
 
@@ -1486,8 +1470,6 @@ class OGP
     public function getStringColorInfoEntry(&$string)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getStringColorInfo();<br>';
-
             return false;
         }
 
@@ -1524,8 +1506,6 @@ class OGP
     public function getVarUint(&$string)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getVarUint();<br>';
-
             return false;
         }
 
@@ -1548,8 +1528,6 @@ class OGP
             return $uint;
         }
 
-        echo '<b>Warning:</b> Unknown type in getVarUint();<br>';
-
         return false;
     }
 
@@ -1567,8 +1545,6 @@ class OGP
     public function getVarSint(&$string)
     {
         if (strlen($string) < 1) {
-            echo '<b>Warning:</b> Empty String in getVarSint();<br>';
-
             return false;
         }
 
@@ -1589,8 +1565,6 @@ class OGP
 
             return $int;
         }
-
-        echo '<b>Warning:</b> Unknown type in getVarSint();<br>';
 
         return false;
     }
@@ -1648,28 +1622,5 @@ class OGP
         $b = str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
 
         return strtoupper($r.$g.$b);
-    }
-}
-
-if (!function_exists('fragsort')) {
-    /**
-     * Document::fragsort().
-     *
-     * Tool function to sort with
-     * {@link http://www.php.net/manual/en/function.uasort.php uasort()}
-     *
-     * @see http://www.php.net/manual/en/function.uasort.php PHP's asort() Documentation
-     */
-    function fragsort($a, $b)
-    {
-        if ($a['frags'] == $b['frags']) {
-            return 0;
-        }
-
-        if ($a['frags'] > $b['frags']) {
-            return -1;
-        } else {
-            return 1;
-        }
     }
 }
