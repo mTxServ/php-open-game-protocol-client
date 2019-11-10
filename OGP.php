@@ -12,6 +12,7 @@ class OGP
      * @var string
      */
     public $addr = '';
+
     /**
      * OGP::$port.
      *
@@ -20,6 +21,7 @@ class OGP
      * @var int
      */
     public $port = 0;
+
     /**
      * OGP::$timeout.
      *
@@ -28,6 +30,7 @@ class OGP
      * @var int
      */
     public $timeout = 0;
+
     /**
      * OGP::$error.
      *
@@ -36,6 +39,7 @@ class OGP
      * @var string
      */
     public $error = '';
+
     /**
      * OGP::$queryres.
      *
@@ -44,6 +48,7 @@ class OGP
      * @var string
      */
     public $queryres = '';
+
     /**
      * OGP::$result_packets.
      *
@@ -53,6 +58,7 @@ class OGP
      * @var int
      */
     public $result_packets = 0;
+
     /**
      * OGP::$total_result_packets.
      *
@@ -61,6 +67,7 @@ class OGP
      * @var int
      */
     public $total_result_packets = 0;
+
     /**
      * OGP::$pakets.
      *
@@ -69,6 +76,7 @@ class OGP
      * @var mixed
      */
     public $pakets = [];
+
     /**
      * OGP::$timeout_sock.
      *
@@ -82,6 +90,7 @@ class OGP
      * @var int
      */
     public $timeout_sock = 2;
+
     /**
      * OGP::$timeout_sock_m.
      *
@@ -95,76 +104,82 @@ class OGP
     public $timeout_sock_m = 0;
 
     /**
-     * OGP::$ChallengeNumber.
+     * OGP::$challengeNumber.
      *
      * Stores the last parsed ChallengeNumber
      *
      * @var mixed
      */
-    public $ChallengeNumber = -1;
+    public $challengeNumber = -1;
+
     /**
-     * OGP::$RequestID.
+     * OGP::$requestID.
      *
      * Stores the last parsed RequestID
      *
      * @var mixed
      */
-    public $RequestID = -1;
+    public $requestID = -1;
 
     /**
-     * OGP::$SERVERINFO.
+     * OGP::$serverInfo.
      *
      * All vars depending on SERVERINFO
      * are stored in this array
      *
      * @var mixed
      */
-    public $SERVERINFO = [];
+    public $serverInfo = [];
+
     /**
-     * OGP::$RULELIST.
+     * OGP::$rules.
      *
      * All vars depending on RULELIST
      * are stored in this array
      *
      * @var mixed
      */
-    public $RULELIST = [];
+    public $rules = [];
+
     /**
-     * OGP::$TEAMLIST.
+     * OGP::$teams.
      *
      * All vars depending on TEAMLIST
      * are stored in this array
      *
      * @var mixed
      */
-    public $TEAMLIST = [];
+    public $teams = [];
+
     /**
-     * OGP::$PLAYERLIST.
+     * OGP::$players.
      *
      * All vars depending on PLAYERLIST
      * are stored in this array
      *
      * @var mixed
      */
-    public $PLAYERLIST = [];
+    public $players = [];
+
     /**
-     * OGP::$ADDONLIST.
+     * OGP::$addons.
      *
      * All vars depending on ADDONLIST
      * are stored in this array
      *
      * @var mixed
      */
-    public $ADDONLIST = [];
+    public $addons = [];
+
     /**
-     * OGP::$LIMITLIST.
+     * OGP::$limits.
      *
      * All vars depending on LIMITLIST
      * are stored in this array
      *
      * @var mixed
      */
-    public $LIMITLIST = [];
+    public $limits = [];
 
     /**
      * OGP::OGP().
@@ -367,7 +382,7 @@ class OGP
             return false;
         }
 
-        $this->ChallengeNumber = $this->getUint($result2, 32);
+        $this->challengeNumber = $this->getUint($result2, 32);
 
         return true;
     }
@@ -380,12 +395,12 @@ class OGP
      * It generates the OGP Header and the OGP Query,
      * then calls OGP::serverQuery(); to get the answer packets.
      * After that it parses the result packets, and fills the arrays:
-     *  - {@link OGP::$SERVERINFO}
-     *  - {@link OGP::$TEAMLIST}
-     *  - {@link OGP::$PLAYERLIST}
-     *  - {@link OGP::$RULELIST}
-     *  - {@link OGP::$ADDONLIST}
-     *  - {@link OGP::$LIMITLIST}
+     *  - {@link OGP::$serverInfo}
+     *  - {@link OGP::$teams}
+     *  - {@link OGP::$players}
+     *  - {@link OGP::$rules}
+     *  - {@link OGP::$addons}
+     *  - {@link OGP::$limits}
      * (the arrays are only filled with the values that are supported by the server)
      *
      * @see OGP::serverQuery()
@@ -394,13 +409,13 @@ class OGP
      */
     public function getStatus()
     {
-        if (-1 == $this->ChallengeNumber) {
+        if (-1 == $this->challengeNumber) {
             if (!$this->getChallengeNumber()) {
                 return false;
             }
         }
 
-        if (-1 == $this->ChallengeNumber) {
+        if (-1 == $this->challengeNumber) {
             $this->error = 'Could not get Challenge Number!';
 
             return false;
@@ -427,7 +442,7 @@ class OGP
         player via default protocol (e.g. IP address)
         */
 
-        $command2 = $Type.$HeadFlags_send.$this->ChallengeNumber;
+        $command2 = $Type.$HeadFlags_send.$this->challengeNumber;
 
         $command = $command.chr(strlen($command2) + 1).$command2;
 
@@ -454,26 +469,26 @@ class OGP
         Bit 1.0: bColoredNames
         */
         if (1 == $RequestFlags[0][0]) {
-            $ServerInfoFields[0][0] = 1;
-            $ServerInfoFields[0][1] = 1;
-            $ServerInfoFields[0][2] = 1;
-            $ServerInfoFields[0][3] = 1;
+            $serverInfoFields[0][0] = 1;
+            $serverInfoFields[0][1] = 1;
+            $serverInfoFields[0][2] = 1;
+            $serverInfoFields[0][3] = 1;
 
-            $ServerInfoFields[1][0] = 1;
-            $ServerInfoFields[1][1] = 1;
-            $ServerInfoFields[1][2] = 1;
-            $ServerInfoFields[1][3] = 1;
-            $ServerInfoFields[1][4] = 1;
+            $serverInfoFields[1][0] = 1;
+            $serverInfoFields[1][1] = 1;
+            $serverInfoFields[1][2] = 1;
+            $serverInfoFields[1][3] = 1;
+            $serverInfoFields[1][4] = 1;
 
-            $ServerInfoFields[2][0] = 1;
-            $ServerInfoFields[2][1] = 1;
-            $ServerInfoFields[2][2] = 1;
-            $ServerInfoFields[2][3] = 1;
+            $serverInfoFields[2][0] = 1;
+            $serverInfoFields[2][1] = 1;
+            $serverInfoFields[2][2] = 1;
+            $serverInfoFields[2][3] = 1;
         } else {
-            $ServerInfoFields[0][0] = 0;
+            $serverInfoFields[0][0] = 0;
         }
 
-        $ServerInfoFields_send = $this->getCharsbyBinary($this->VarBitArray_toString($ServerInfoFields));
+        $serverInfoFields_send = $this->getCharsbyBinary($this->VarBitArray_toString($serverInfoFields));
         /*
          - Depends: bServerInfo
          Bit 0.0: bGameName
@@ -492,7 +507,7 @@ class OGP
          Bit 2.2: bBotCount
          Bit 2.3: bReservedSlots
         */
-        if (1 == $ServerInfoFields[1][0]) { //ServerInfoFields.bMod
+        if (1 == $serverInfoFields[1][0]) { //ServerInfoFields.bMod
             $ModFields[0][0] = 1;
             $ModFields[0][1] = 1;
             $ModFields[0][2] = 1;
@@ -512,7 +527,7 @@ class OGP
           Bit 0.4: bModAuthor
         */
 
-        if (1 == $ServerInfoFields[1][3]) { //ServerInfoFields.bMap
+        if (1 == $serverInfoFields[1][3]) { //ServerInfoFields.bMap
             $MapFields[0][0] = 1;
             $MapFields[0][1] = 1;
             $MapFields[0][2] = 1;
@@ -626,7 +641,7 @@ class OGP
 
         //QUERY ENDE
 
-        $query = $RequestFlags_send.$ServerInfoFields_send.$ModFields_send.$MapFields_send.$TeamFields_send.
+        $query = $RequestFlags_send.$serverInfoFields_send.$ModFields_send.$MapFields_send.$TeamFields_send.
                    $PlayerFields_send.$AddOnFields_send;
 
         $command .= $query;
@@ -667,10 +682,10 @@ class OGP
         }
 
         if (1 == $HeadFlags[0][1]) { //bChallengeNumber isset
-            $this->ChallengeNumber = $this->getInt($result2, 32);
+            $this->challengeNumber = $this->getInt($result2, 32);
         }
         if (1 == $HeadFlags[0][2]) { //bRequestID isset
-            $this->RequestID = $this->getInt($result2, 32);
+            $this->requestID = $this->getInt($result2, 32);
         }
         if (1 == $HeadFlags[0][3]) { //bSplit isset
             $SplitPacketCount = $this->getInt($result2, 8);
@@ -685,114 +700,114 @@ class OGP
         if (1 == $get_RequestFlags[0][0]) { //bServerInfo
             $get_ServerInfoFields = $this->getVarBitArray($result2);
             if (1 == $get_ServerInfoFields[0][0]) { //bGameName
-                $this->SERVERINFO['GameName'] = $this->getSzString($result2);
+                $this->serverInfo['GameName'] = $this->getSzString($result2);
             }
             if (1 == $get_ServerInfoFields[0][1]) { //bServerFlags
-                $this->SERVERINFO['ServerFlags'] = $this->getVarBitArray($result2);
+                $this->serverInfo['ServerFlags'] = $this->getVarBitArray($result2);
                 $this->parseServerFlags();
             }
             if (1 == $get_ServerInfoFields[0][2]) { //bHostName
-                $this->SERVERINFO['HostName'] = $this->getSzString($result2);
+                $this->serverInfo['HostName'] = $this->getSzString($result2);
                 if (isset($get_RequestFlags[1]) && 1 == $get_RequestFlags[1][0]) { //bColoredNames
-                    $this->SERVERINFO['HostNameColor'] = $this->getStringColorInfo($result2);
+                    $this->serverInfo['HostNameColor'] = $this->getStringColorInfo($result2);
                 }
             }
 
             if (1 == $get_ServerInfoFields[0][3]) { //bConnectPort
-                $this->SERVERINFO['ConnectPort'] = $this->parseUint($this->getUint($result2, 16));
+                $this->serverInfo['ConnectPort'] = $this->parseUint($this->getUint($result2, 16));
             }
 
             if (1 == $get_ServerInfoFields[1][0]) { //bMod
-                $this->SERVERINFO['MODINFO']['ModName'] = $this->getSzString($result2);
-                if (!empty($this->SERVERINFO['MODINFO']['ModName'])) {
+                $this->serverInfo['MODINFO']['ModName'] = $this->getSzString($result2);
+                if (!empty($this->serverInfo['MODINFO']['ModName'])) {
                     $get_ModFields = $this->getVarBitArray($result2);
                     if (1 == $get_ModFields[0][0]) { //bModIdentifier
-                        $this->SERVERINFO['MODINFO']['ModIdentifier'] = $this->getSzString($result2);
-                        if (empty($this->SERVERINFO['MODINFO']['ModIdentifier'])) {
-                            $this->SERVERINFO['MODINFO']['ModIdentifier'] = $this->SERVERINFO['MODINFO']['ModName'];
+                        $this->serverInfo['MODINFO']['ModIdentifier'] = $this->getSzString($result2);
+                        if (empty($this->serverInfo['MODINFO']['ModIdentifier'])) {
+                            $this->serverInfo['MODINFO']['ModIdentifier'] = $this->serverInfo['MODINFO']['ModName'];
                         }
                     }
                     if (1 == $get_ModFields[0][1]) { //bModSize
-                        $this->SERVERINFO['MODINFO']['ModSize'] = $this->parseUint($this->getUint($result2, 32));
+                        $this->serverInfo['MODINFO']['ModSize'] = $this->parseUint($this->getUint($result2, 32));
                     }
                     if (1 == $get_ModFields[0][2]) { //bModVersion
-                        $this->SERVERINFO['MODINFO']['ModVersion'] = $this->getSzString($result2);
+                        $this->serverInfo['MODINFO']['ModVersion'] = $this->getSzString($result2);
                     }
                     if (1 == $get_ModFields[0][3]) { //bModURL
-                        $this->SERVERINFO['MODINFO']['ModURL'] = $this->getSzString($result2);
+                        $this->serverInfo['MODINFO']['ModURL'] = $this->getSzString($result2);
                     }
                     if (1 == $get_ModFields[0][4]) { //bModAuthor
-                        $this->SERVERINFO['MODINFO']['ModAuthor'] = $this->getSzString($result2);
+                        $this->serverInfo['MODINFO']['ModAuthor'] = $this->getSzString($result2);
                     }
                 }
             }
             if (1 == $get_ServerInfoFields[1][1]) { //bGameType
-                $this->SERVERINFO['GameType'] = $this->getSzString($result2);
+                $this->serverInfo['GameType'] = $this->getSzString($result2);
             }
             if (1 == $get_ServerInfoFields[1][2]) { //bGameMode
-                $this->SERVERINFO['GameMode'] = $this->getSzString($result2);
+                $this->serverInfo['GameMode'] = $this->getSzString($result2);
             }
             if (1 == $get_ServerInfoFields[1][3]) { //bMap
                 $get_MapFields = $this->getVarBitArray($result2);
-                $this->SERVERINFO['MAPINFO']['MapName'] = $this->getSzString($result2);
+                $this->serverInfo['MAPINFO']['MapName'] = $this->getSzString($result2);
                 if (1 == $get_MapFields[0][0]) { //bMapFileName
-                    $this->SERVERINFO['MAPINFO']['MapFileName'] = $this->getSzString($result2);
+                    $this->serverInfo['MAPINFO']['MapFileName'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][1]) { //bMapFileSize
-                    $this->SERVERINFO['MAPINFO']['MapFileSize'] = $this->parseUint($this->getUint($result2, 32));
+                    $this->serverInfo['MAPINFO']['MapFileSize'] = $this->parseUint($this->getUint($result2, 32));
                 }
                 if (1 == $get_MapFields[0][2]) { //bMapFileMD5
-                    $this->SERVERINFO['MAPINFO']['MapFileMD5'] = '';
+                    $this->serverInfo['MAPINFO']['MapFileMD5'] = '';
                     for ($md5c = 0; $md5c < 16; ++$md5c) {
-                        $this->SERVERINFO['MAPINFO']['MapFileMD5'] .= chr($this->parseUint($this->getUint($result2, 8)));
+                        $this->serverInfo['MAPINFO']['MapFileMD5'] .= chr($this->parseUint($this->getUint($result2, 8)));
                     }
                 }
                 if (1 == $get_MapFields[0][3]) { //bMapVersion
-                    $this->SERVERINFO['MAPINFO']['MapVersion'] = $this->getSzString($result2);
+                    $this->serverInfo['MAPINFO']['MapVersion'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][4]) { //bMapURL
-                    $this->SERVERINFO['MAPINFO']['MapURL'] = $this->getSzString($result2);
+                    $this->serverInfo['MAPINFO']['MapURL'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][5]) { //bMapAuthor
-                    $this->SERVERINFO['MAPINFO']['MapAuthor'] = $this->getSzString($result2);
+                    $this->serverInfo['MAPINFO']['MapAuthor'] = $this->getSzString($result2);
                 }
             }
             if (1 == $get_ServerInfoFields[1][3] && 1 == $get_ServerInfoFields[1][4]) { //bMap && bNextMap
-                $this->SERVERINFO['NEXTMAPINFO']['MapName'] = $this->getSzString($result2);
+                $this->serverInfo['NEXTMAPINFO']['MapName'] = $this->getSzString($result2);
                 if (1 == $get_MapFields[0][0]) { //bMapFileName
-                    $this->SERVERINFO['NEXTMAPINFO']['MapFileName'] = $this->getSzString($result2);
+                    $this->serverInfo['NEXTMAPINFO']['MapFileName'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][1]) { //bMapFileSize
-                    $this->SERVERINFO['NEXTMAPINFO']['MapFileSize'] = $this->parseUint($this->getUint($result2, 32));
+                    $this->serverInfo['NEXTMAPINFO']['MapFileSize'] = $this->parseUint($this->getUint($result2, 32));
                 }
                 if (1 == $get_MapFields[0][2]) { //bMapFileMD5
-                    $this->SERVERINFO['NEXTMAPINFO']['MapFileMD5'] = '';
+                    $this->serverInfo['NEXTMAPINFO']['MapFileMD5'] = '';
                     for ($md5c = 0; $md5c < 16; ++$md5c) {
-                        $this->SERVERINFO['NEXTMAPINFO']['MapFileMD5'] .= chr($this->parseUint($this->getUint($result2, 8)));
+                        $this->serverInfo['NEXTMAPINFO']['MapFileMD5'] .= chr($this->parseUint($this->getUint($result2, 8)));
                     }
                 }
                 if (1 == $get_MapFields[0][3]) { //bMapVersion
-                    $this->SERVERINFO['NEXTMAPINFO']['MapVersion'] = $this->getSzString($result2);
+                    $this->serverInfo['NEXTMAPINFO']['MapVersion'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][4]) { //bMapURL
-                    $this->SERVERINFO['NEXTMAPINFO']['MapURL'] = $this->getSzString($result2);
+                    $this->serverInfo['NEXTMAPINFO']['MapURL'] = $this->getSzString($result2);
                 }
                 if (1 == $get_MapFields[0][5]) { //bMapAuthor
-                    $this->SERVERINFO['NEXTMAPINFO']['MapAuthor'] = $this->getSzString($result2);
+                    $this->serverInfo['NEXTMAPINFO']['MapAuthor'] = $this->getSzString($result2);
                 }
             }
 
             if (1 == $get_ServerInfoFields[2][0]) { //bPlayerCount
-                $this->SERVERINFO['PlayerCount'] = $this->parseUint($this->getVarUint($result2));
+                $this->serverInfo['PlayerCount'] = $this->parseUint($this->getVarUint($result2));
             }
             if (1 == $get_ServerInfoFields[2][1]) { //bSlotMax
-                $this->SERVERINFO['SlotMax'] = $this->parseUint($this->getVarUint($result2));
+                $this->serverInfo['SlotMax'] = $this->parseUint($this->getVarUint($result2));
             }
             if (1 == $get_ServerInfoFields[2][2]) { //bBotCount
-                $this->SERVERINFO['BotCount'] = $this->parseUint($this->getVarUint($result2));
+                $this->serverInfo['BotCount'] = $this->parseUint($this->getVarUint($result2));
             }
             if (1 == $get_ServerInfoFields[2][3]) { //bReservedSlots
-                $this->SERVERINFO['ReservedSlots'] = $this->parseUint($this->getVarUint($result2));
+                $this->serverInfo['ReservedSlots'] = $this->parseUint($this->getVarUint($result2));
             }
         }
 
@@ -827,7 +842,7 @@ class OGP
                     $this_team_entry['TeamColor'] = $this->parseUint($this->getUint($result2, 16));
                 }
 
-                array_push($this->TEAMLIST, $this_team_entry);
+                array_push($this->teams, $this_team_entry);
             }
         }
 
@@ -910,7 +925,7 @@ class OGP
                     }
                 }
 
-                array_push($this->PLAYERLIST, $this_player_entry);
+                array_push($this->players, $this_player_entry);
             }
         }
 
@@ -918,7 +933,7 @@ class OGP
             $RuleCount = $this->parseUint($this->getVarUint($result2));
 
             for ($r = 0; $r < $RuleCount; ++$r) {
-                $this->RULELIST[$this->getSzString($result2)] = $this->getSzString($result2);
+                $this->rules[$this->getSzString($result2)] = $this->getSzString($result2);
             }
         }
 
@@ -944,7 +959,7 @@ class OGP
                     $this_addon_entry['AddOnVersion'] = $this->getSzString($result2);
                 }
 
-                array_push($this->ADDONLIST, $this_addon_entry);
+                array_push($this->addons, $this_addon_entry);
             }
         }
 
@@ -970,7 +985,7 @@ class OGP
                     $this_limit_entry['Left'] = $this->parseUint($this->getVarUint($result2));
                 }
 
-                array_push($this->LIMITLIST, $this_limit_entry);
+                array_push($this->limits, $this_limit_entry);
             }
         }
 
@@ -1102,34 +1117,34 @@ class OGP
      */
     public function parseServerFlags()
     {
-        if (!isset($this->SERVERINFO['ServerFlags'][0])) {
+        if (!isset($this->serverInfo['ServerFlags'][0])) {
             return false;
         }
 
         $new_flags = [];
-        $bType = bindec(strrev($this->SERVERINFO['ServerFlags'][0][0].
-               $this->SERVERINFO['ServerFlags'][0][1]));
+        $bType = bindec(strrev($this->serverInfo['ServerFlags'][0][0].
+               $this->serverInfo['ServerFlags'][0][1]));
         switch ($bType) {
             case 0: $new_flags['bType'] = 'Unknown'; break;
             case 1: $new_flags['bType'] = 'Listen'; break;
             case 2: $new_flags['bType'] = 'Dedicated'; break;
         }
 
-        if (1 == $this->SERVERINFO['ServerFlags'][0][2]) { //bPassword
+        if (1 == $this->serverInfo['ServerFlags'][0][2]) { //bPassword
             $new_flags['Password'] = true;
         } else {
             $new_flags['Password'] = false;
         }
 
-        if (1 == $this->SERVERINFO['ServerFlags'][0][3]) { //bProxy
+        if (1 == $this->serverInfo['ServerFlags'][0][3]) { //bProxy
             $new_flags['Proxy'] = true;
         } else {
             $new_flags['Proxy'] = false;
         }
 
-        $OperatingSystem = bindec(strrev($this->SERVERINFO['ServerFlags'][0][4].
-                           $this->SERVERINFO['ServerFlags'][0][5].
-                           $this->SERVERINFO['ServerFlags'][0][6]));
+        $OperatingSystem = bindec(strrev($this->serverInfo['ServerFlags'][0][4].
+                           $this->serverInfo['ServerFlags'][0][5].
+                           $this->serverInfo['ServerFlags'][0][6]));
 
         switch ($OperatingSystem) {
             case 0: $new_flags['OperatingSystem'] = 'Unknown'; break;
@@ -1140,7 +1155,7 @@ class OGP
             default: $new_flags['OperatingSystem'] = 'Unknown ('.$OperatingSystem.')';
         }
 
-        $this->SERVERINFO['ServerFlags'] = $new_flags;
+        $this->serverInfo['ServerFlags'] = $new_flags;
 
         return true;
     }
