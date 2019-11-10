@@ -17,12 +17,12 @@ if(!$ogp->getStatus()) {
 }
 
 var_dump(
-  $ogp->SERVERINFO, 
-  $ogp->PLAYERLIST, 
-  $ogp->RULELIST, 
-  $ogp->TEAMLIST, 
-  $ogp->ADDONLIST,
-  $ogp->LIMITLIST, 
+  $ogp->serverInfo,
+  $ogp->players,
+  $ogp->rules,
+  $ogp->teams,
+  $ogp->addons,
+  $ogp->limits,
   $ogp->ping
 );
 ```
