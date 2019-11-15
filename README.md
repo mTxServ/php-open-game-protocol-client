@@ -34,6 +34,7 @@ var_dump(
 * Battlefield Bad Company 2
 * Just Cause 2 (https://www.jc-mp.com/)
 
-# More tools
+# More
 
-* See https://onset-server.com/
+* Get started: https://mtxserv.com/article/12440/onset_php_server_query
+* More tools for Onset on https://onset-server.com/
