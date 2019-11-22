@@ -27,6 +27,44 @@ var_dump(
 );
 ```
 
+# BBCode in hostname
+
+```
+<?php
+
+require_once 'ogp.php';
+
+function parseBBCodeHostname($text)
+{
+    $text = str_replace('?', '', $text);
+
+    $find = array(
+        '~\[g\](.*?)\[/g\]~s',
+        '~\[b\](.*?)\[/b\]~s',
+        '~\[i\](.*?)\[/i\]~s',
+        '~\[u\](.*?)\[/u\]~s',
+        '~\[c=(.*?)\](.*?)\[/c\]~s',
+    );
+    
+    $replace = array(
+        '<b>$1</b>',
+        '<b>$1</b>',
+        '<i>$1</i>',
+        '<span style="text-decoration:underline;">$1</span>',
+        '<span style="color:$1;">$2</span>',
+    );
+    
+    return preg_replace($find,$replace,$text);
+}
+
+
+$ogp = new \OGP\OGP('127.0.0.1', 27015);
+if(!$ogp->getStatus()) {
+    die("Error: ".$ogp->error);
+}
+
+echo parseBBCodeHostname($ogp->serverInfo['HostName']);
+```
 # Games
 
 * Onset (https://store.steampowered.com/app/1105810/Onset/)
