@@ -426,6 +426,7 @@ class OGP
         $command = "\xFF\xFF\xFF\xFFOGP\x00";
         $Type = "\x01"; //query
         $HeadFlags[0][1] = 1;
+        $HeadFlags[0][4] = 1;
         $HeadFlags_send = $this->getCharsbyBinary($this->VarBitArray_toString($HeadFlags));
         /*
         Bit 0.0: bAnswer = 0
