@@ -4,6 +4,8 @@ This is a fork of official PHP OGP client (http://open-game-protocol.org/downloa
 
 This SDK allow you to retrieve server status of your game server in real time.
 
+Usefull for Onset servers (https://playonset.com/).
+
 # Usage
 
 The port is the query port of server (port - 1).
@@ -78,3 +80,4 @@ echo parseBBCodeHostname($ogp->serverInfo['HostName']);
 
 * Get started: https://mtxserv.com/article/12440/onset_php_server_query
 * More tools for Onset on https://onset-server.com/
+* Onset Server Hosting: https://mtxserv.com/host-server/onset
