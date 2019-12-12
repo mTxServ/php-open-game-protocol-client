@@ -245,9 +245,9 @@ class OGP
 
             return false;
         }
-        @socket_set_timeout($socket, $this->timeout_sock, $this->timeout_sock_m);
+        @stream_set_timeout($socket, $this->timeout_sock, $this->timeout_sock_m);
 
-        if (!fwrite($socket, $command, strlen($command))) {
+        if (!fwrite($socket, $command, mb_strlen($command))) {
             $this->error = 'Could not query!';
 
             return false;
@@ -261,7 +261,7 @@ class OGP
             $serverdata = '';
             do {
                 $serverdata .= fgetc($socket);
-                $socketstatus = socket_get_status($socket);
+                $socketstatus = stream_get_meta_data($socket);
                 if ($this->timenow() > ($starttime + $waittime)) {
                     fclose($socket);
                     $this->error = 'Connection timed out';
@@ -274,13 +274,13 @@ class OGP
             ++$this->total_result_packets;
 
             $req = "\xFF\xFF\xFF\xFFOGP\x00";
-            if (substr($serverdata, 0, strlen($req)) != $req) {
-                $this->error = 'Not a OGP Server Response (1)';
+            if (mb_substr($serverdata, 0, mb_strlen($req)) != $req) {
+                $this->error = 'Not a OGP Server Response, server is maybe offline?!';
 
                 return false;
             }
 
-            $flags_check = substr($serverdata, 10, 1);
+            $flags_check = mb_substr($serverdata, 10, 1);
             $flags = $this->getVarBitArray($flags_check);
 
             if (1 != $flags[0][3]) { //bSplit
@@ -289,13 +289,13 @@ class OGP
                 }
                 break;
             } else {
-                $HeaderSize = substr($serverdata, 8, 1);
+                $HeaderSize = mb_substr($serverdata, 8, 1);
                 $HeaderSize = $this->parseUint($HeaderSize);
 
-                $serverheader = substr($serverdata, 8, $HeaderSize);
+                $serverheader = mb_substr($serverdata, 8, $HeaderSize);
 
-                $SplitPacketCount = substr($serverheader, -2, 1);
-                $SplitPacketNo = substr($serverheader, -1, 1);
+                $SplitPacketCount = mb_substr($serverheader, -2, 1);
+                $SplitPacketNo = mb_substr($serverheader, -1, 1);
 
                 $SplitPacketCount = $this->parseUint($SplitPacketCount);
                 $SplitPacketNo = $this->parseUint($SplitPacketNo);
@@ -312,11 +312,11 @@ class OGP
         $this->ping = round(($this->timenow() - $starttime) * 100);
 
         for ($i = 0; $i < count($this->pakets); ++$i) {
-            $this_headersize = substr($this->pakets[$i], 8, 1);
+            $this_headersize = mb_substr($this->pakets[$i], 8, 1);
             $this_headersize = $this->parseUint($this_headersize);
 
             if ($i > 0) {
-                $this->queryres .= substr($this->pakets[$i], $this_headersize + 8);
+                $this->queryres .= mb_substr($this->pakets[$i], $this_headersize + 8);
             } else {
                 $this->queryres .= $this->pakets[$i];
             }
@@ -343,7 +343,7 @@ class OGP
         $HeadFlags = bindec($HeadFlags);
         $command2 = $Type.chr($HeadFlags);
 
-        $command = $command.chr(strlen($command2) + 1).$command2;
+        $command = $command.chr(mb_strlen($command2) + 1).$command2;
 
         if (!$this->serverQuery($command, $this->addr, $this->port, $this->timeout)) {
             return false;
@@ -352,13 +352,13 @@ class OGP
         $result = $this->queryres;
 
         $req = "\xFF\xFF\xFF\xFFOGP\x00";
-        if (substr($result, 0, strlen($req)) != $req) {
+        if (mb_substr($result, 0, mb_strlen($req)) != $req) {
             $this->error = 'Not a OGP Server Response (2)';
 
             return false;
         }
 
-        $result2 = substr($result, 8);
+        $result2 = mb_substr($result, 8);
         $size = ord($this->getUint($result2, 8));
 
         $type = $this->getUint($result2, 8);
@@ -444,7 +444,7 @@ class OGP
 
         $command2 = $Type.$HeadFlags_send.$this->challengeNumber;
 
-        $command = $command.chr(strlen($command2) + 1).$command2;
+        $command = $command.chr(mb_strlen($command2) + 1).$command2;
 
         //HEADER ENDE
 
@@ -653,17 +653,17 @@ class OGP
         $result = $this->queryres;
 
         $req = "\xFF\xFF\xFF\xFFOGP\x00";
-        if (substr($result, 0, strlen($req)) != $req) {
+        if (mb_substr($result, 0, mb_strlen($req)) != $req) {
             $this->error = 'Not a OGP Server Response (2)';
 
             return false;
         }
 
-        $result2 = substr($result, 8);
+        $result2 = mb_substr($result, 8);
         $HeadSize = ord($this->getUint($result2, 8));
         $Type = $this->getUint($result2, 8);
         if ("\xFF" == $Type) { //Error?
-            $err_message = substr($result, $HeadSize + 8);
+            $err_message = mb_substr($result, $HeadSize + 8);
             $err_id = $this->getUint($err_message, 8);
             $this->error = "Server says Error: '".$this->getErrorbyID($err_id)."' (1)";
 
@@ -1204,14 +1204,14 @@ class OGP
      */
     public function parseIP($uint)
     {
-        if (strlen($uint) < 4) {
+        if (mb_strlen($uint) < 4) {
             return false;
         }
 
-        return $this->parseUint(substr($uint, 3, 1)).'.'.
-                 $this->parseUint(substr($uint, 2, 1)).'.'.
-                 $this->parseUint(substr($uint, 1, 1)).'.'.
-                 $this->parseUint(substr($uint, 0, 1));
+        return $this->parseUint(mb_substr($uint, 3, 1)).'.'.
+                 $this->parseUint(mb_substr($uint, 2, 1)).'.'.
+                 $this->parseUint(mb_substr($uint, 1, 1)).'.'.
+                 $this->parseUint(mb_substr($uint, 0, 1));
     }
 
     /**
@@ -1228,14 +1228,14 @@ class OGP
      */
     public function getUint(&$string, $length = 8)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
         $length = $length / 8;
 
-        $uint = substr($string, 0, $length);
-        $string = substr($string, $length);
+        $uint = mb_substr($string, 0, $length);
+        $string = mb_substr($string, $length);
 
         return $uint;
     }
@@ -1252,11 +1252,11 @@ class OGP
      */
     public function parseUint($uint)
     {
-        if (1 == strlen($uint)) {
+        if (1 == mb_strlen($uint)) {
             $uint = unpack('Cuint', $uint);
-        } elseif (2 == strlen($uint)) {
+        } elseif (2 == mb_strlen($uint)) {
             $uint = unpack('vuint', $uint);
-        } elseif (4 == strlen($uint)) {
+        } elseif (4 == mb_strlen($uint)) {
             $uint = unpack('Vuint', $uint);
         }
 
@@ -1277,14 +1277,14 @@ class OGP
      */
     public function getInt(&$string, $length = 8)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
         $length = $length / 8;
 
-        $int = substr($string, 0, $length);
-        $string = substr($string, $length);
+        $int = mb_substr($string, 0, $length);
+        $string = mb_substr($string, $length);
 
         return $int;
     }
@@ -1299,11 +1299,11 @@ class OGP
      */
     public function parseInt($int)
     {
-        if (1 == strlen($int)) {
+        if (1 == mb_strlen($int)) {
             $int = unpack('cint', $int);
-        } elseif (2 == strlen($int)) {
+        } elseif (2 == mb_strlen($int)) {
             $int = unpack('sint', $int);
-        } elseif (4 == strlen($int)) {
+        } elseif (4 == mb_strlen($int)) {
             $int = unpack('lint', $int);
         }
 
@@ -1324,22 +1324,22 @@ class OGP
      */
     public function getVarBitArray(&$string)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
         $varbitarray = [];
         $i = 0;
         while (true) {
-            $c = substr($string, 0, 1);
-            $string = substr($string, 1);
+            $c = mb_substr($string, 0, 1);
+            $string = mb_substr($string, 1);
 
             $bin = decbin(ord($c));
-            $bin = str_repeat('0', 8 - strlen($bin)).$bin;
+            $bin = str_repeat('0', 8 - mb_strlen($bin)).$bin;
 
             $bin_array = [];
             for ($x = 7; $x >= 0; --$x) {
-                $b = substr($bin, $x, 1);
+                $b = mb_substr($bin, $x, 1);
                 $bin_array[7 - $x] = $b;
             }
             $varbitarray[$i] = $bin_array;
@@ -1401,20 +1401,20 @@ class OGP
      */
     public function getCharsbyBinary($binary)
     {
-        if (strlen($binary) < 1) {
+        if (mb_strlen($binary) < 1) {
             return false;
         }
 
-        if (strlen($binary) / 8 != floor(strlen($binary) / 8)
-        || strlen($binary) / 8 != ceil(strlen($binary) / 8)) {
+        if (mb_strlen($binary) / 8 != floor(mb_strlen($binary) / 8)
+        || mb_strlen($binary) / 8 != ceil(mb_strlen($binary) / 8)) {
             return false;
         }
 
         $string = '';
 
-        $count = strlen($binary) / 8;
+        $count = mb_strlen($binary) / 8;
         for ($i = 0; $i < $count; ++$i) {
-            $string .= chr(bindec(substr($binary, $i * 8, 8)));
+            $string .= chr(bindec(mb_substr($binary, $i * 8, 8)));
         }
 
         return $string;
@@ -1432,12 +1432,12 @@ class OGP
      */
     public function getSzString(&$string)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
-        $szstring = substr($string, 0, strpos($string, "\x00"));
-        $string = substr($string, strlen($szstring) + 1);
+        $szstring = mb_substr($string, 0, mb_strpos($string, "\x00"));
+        $string = mb_substr($string, mb_strlen($szstring) + 1);
 
         return $szstring;
     }
@@ -1484,11 +1484,11 @@ class OGP
      */
     public function getStringColorInfoEntry(&$string)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
-        $size_before = strlen($string);
+        $size_before = mb_strlen($string);
 
         $DeltaPosition = $this->getVarUint($string);
 
@@ -1498,7 +1498,7 @@ class OGP
             $ColorValue16 = $this->getUint($string, 16);
         }
 
-        $size_after = strlen($string);
+        $size_after = mb_strlen($string);
         $size = $size_before - $size_after;
 
         return ['DeltaPosition' => $DeltaPosition,
@@ -1520,7 +1520,7 @@ class OGP
      */
     public function getVarUint(&$string)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
@@ -1559,7 +1559,7 @@ class OGP
      */
     public function getVarSint(&$string)
     {
-        if (strlen($string) < 1) {
+        if (mb_strlen($string) < 1) {
             return false;
         }
 
@@ -1592,17 +1592,17 @@ class OGP
      */
     public function color_web_to16bit($color)
     {
-        $r = hexdec(substr($color, 0, 2));
-        $g = hexdec(substr($color, 2, 2));
-        $b = hexdec(substr($color, 4, 2));
+        $r = hexdec(mb_substr($color, 0, 2));
+        $g = hexdec(mb_substr($color, 2, 2));
+        $b = hexdec(mb_substr($color, 4, 2));
 
         $r = round($r / (255 / 31));
         $g = round($g / (255 / 63));
         $b = round($b / (255 / 31));
 
-        $r = substr(decbin($r), -5);
-        $g = substr(decbin($g), -6);
-        $b = substr(decbin($b), -5);
+        $r = mb_substr(decbin($r), -5);
+        $g = mb_substr(decbin($g), -6);
+        $b = mb_substr(decbin($b), -5);
 
         $r = str_pad($r, 5, '0', STR_PAD_LEFT);
         $g = str_pad($g, 6, '0', STR_PAD_LEFT);
@@ -1624,9 +1624,9 @@ class OGP
         $binary = decbin($color);
         $binary = str_pad($binary, 16, '0', STR_PAD_LEFT);
 
-        $r = bindec(substr($binary, 0, 5));
-        $g = bindec(substr($binary, 5, 6));
-        $b = bindec(substr($binary, 11, 5));
+        $r = bindec(mb_substr($binary, 0, 5));
+        $g = bindec(mb_substr($binary, 5, 6));
+        $b = bindec(mb_substr($binary, 11, 5));
 
         $r = round($r * (255 / 31));
         $g = round($g * (255 / 63));
