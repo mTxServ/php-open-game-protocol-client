@@ -6,6 +6,8 @@ This SDK allow you to retrieve server status of your game server in real time.
 
 # Usage
 
+The port is the query port of server (port - 1).
+
 ```
 <?php
 
