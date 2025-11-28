@@ -5,33 +5,6 @@ namespace OGP;
 class OGP
 {
     /**
-     * OGP::$addr.
-     *
-     * Stores the address to query
-     *
-     * @var string
-     */
-    public $addr = '';
-
-    /**
-     * OGP::$port.
-     *
-     * Stores the port to query
-     *
-     * @var int
-     */
-    public $port = 0;
-
-    /**
-     * OGP::$timeout.
-     *
-     * The query timeout (total time)
-     *
-     * @var int
-     */
-    public $timeout = 0;
-
-    /**
      * OGP::$error.
      *
      * Stores the last Errormessage
@@ -182,6 +155,15 @@ class OGP
     public $limits = [];
 
     /**
+     * OGP::$ping.
+     *
+     * The last ping
+     *
+     * @var int|float
+     */
+    public $ping = 0;
+
+    /**
      * OGP::OGP().
      *
      * the Contructor of the class
@@ -192,12 +174,26 @@ class OGP
      * @param int    $port
      * @param int    $timeout
      */
-    public function __construct($addr, $port, $timeout = 100)
-    {
-        $this->addr = $addr;
-        $this->port = $port;
-        $this->timeout = $timeout;
-    }
+    public function __construct(
+        /**
+         * OGP::$addr.
+         *
+         * Stores the address to query
+         */
+        public $addr,
+        /**
+         * OGP::$port.
+         *
+         * Stores the port to query
+         */
+        public $port,
+        /**
+         * OGP::$timeout.
+         *
+         * The query timeout (total time)
+         */
+        public $timeout = 100
+    ) {}
 
     /**
      * OGP::timenow().
@@ -240,7 +236,7 @@ class OGP
      */
     public function serverQuery($command, $addr, $port, $waittime)
     {
-        if (!$socket = fsockopen('udp://'.$addr, $port, $errno, $errstr, 2)) {
+        if (!$socket = fsockopen('udp://' . $addr, $port, $errno, $errstr, 2)) {
             $this->error = 'Could not connect!';
 
             return false;
@@ -274,7 +270,7 @@ class OGP
             ++$this->total_result_packets;
 
             $req = "\xFF\xFF\xFF\xFFOGP\x00";
-            if (substr($serverdata, 0, strlen($req)) != $req) {
+            if (!str_starts_with($serverdata, $req)) {
                 $this->error = 'Not a OGP Server Response (1)';
 
                 return false;
@@ -341,9 +337,9 @@ class OGP
         $Type = "\x01"; //query
         $HeadFlags = '00000000';
         $HeadFlags = bindec($HeadFlags);
-        $command2 = $Type.chr($HeadFlags);
+        $command2 = $Type . chr($HeadFlags);
 
-        $command = $command.chr(strlen($command2) + 1).$command2;
+        $command = $command . chr(strlen($command2) + 1) . $command2;
 
         if (!$this->serverQuery($command, $this->addr, $this->port, $this->timeout)) {
             return false;
@@ -352,7 +348,7 @@ class OGP
         $result = $this->queryres;
 
         $req = "\xFF\xFF\xFF\xFFOGP\x00";
-        if (substr($result, 0, strlen($req)) != $req) {
+        if (!str_starts_with($result, $req)) {
             $this->error = 'Not a OGP Server Response (2)';
 
             return false;
@@ -425,6 +421,7 @@ class OGP
 
         $command = "\xFF\xFF\xFF\xFFOGP\x00";
         $Type = "\x01"; //query
+        $HeadFlags = [];
         $HeadFlags[0][1] = 1;
         $HeadFlags[0][4] = 1;
         $HeadFlags_send = $this->getCharsbyBinary($this->VarBitArray_toString($HeadFlags));
@@ -443,14 +440,15 @@ class OGP
         player via default protocol (e.g. IP address)
         */
 
-        $command2 = $Type.$HeadFlags_send.$this->challengeNumber;
+        $command2 = $Type . $HeadFlags_send . $this->challengeNumber;
 
-        $command = $command.chr(strlen($command2) + 1).$command2;
+        $command = $command . chr(strlen($command2) + 1) . $command2;
 
         //HEADER ENDE
 
         //QUERY BEGIN
 
+        $RequestFlags = [];
         $RequestFlags[0][0] = 1;
         $RequestFlags[0][1] = 1;
         $RequestFlags[0][2] = 1;
@@ -469,6 +467,7 @@ class OGP
 
         Bit 1.0: bColoredNames
         */
+        $serverInfoFields = [];
         if (1 == $RequestFlags[0][0]) {
             $serverInfoFields[0][0] = 1;
             $serverInfoFields[0][1] = 1;
@@ -508,6 +507,7 @@ class OGP
          Bit 2.2: bBotCount
          Bit 2.3: bReservedSlots
         */
+        $ModFields = [];
         if (1 == $serverInfoFields[1][0]) { //ServerInfoFields.bMod
             $ModFields[0][0] = 1;
             $ModFields[0][1] = 1;
@@ -528,6 +528,7 @@ class OGP
           Bit 0.4: bModAuthor
         */
 
+        $MapFields = [];
         if (1 == $serverInfoFields[1][3]) { //ServerInfoFields.bMap
             $MapFields[0][0] = 1;
             $MapFields[0][1] = 1;
@@ -549,6 +550,7 @@ class OGP
            Bit 0.4: bMapURL
            Bit 0.5: bMapAuthor
         */
+        $TeamFields = [];
         if (1 == $RequestFlags[0][1]) {
             $TeamFields[0][0] = 1;
             $TeamFields[0][1] = 1;
@@ -569,6 +571,7 @@ class OGP
         Bit 0.4: bTeamPlayerCount
         Bit 0.5: bTeamColor
         */
+        $PlayerFields = [];
         if (1 == $RequestFlags[0][2]) {
             $PlayerFields[0][0] = 1;
             $PlayerFields[0][1] = 1;
@@ -623,6 +626,7 @@ class OGP
 
         Bit 3.0: bPlayerAddress
         */
+        $AddOnFields = [];
         if (1 == $RequestFlags[0][4]) {
             $AddOnFields[0][0] = 1;
             $AddOnFields[0][1] = 1;
@@ -642,8 +646,8 @@ class OGP
 
         //QUERY ENDE
 
-        $query = $RequestFlags_send.$serverInfoFields_send.$ModFields_send.$MapFields_send.$TeamFields_send.
-            $PlayerFields_send.$AddOnFields_send;
+        $query = $RequestFlags_send . $serverInfoFields_send . $ModFields_send . $MapFields_send . $TeamFields_send
+            . $PlayerFields_send . $AddOnFields_send;
 
         $command .= $query;
 
@@ -654,7 +658,7 @@ class OGP
         $result = $this->queryres;
 
         $req = "\xFF\xFF\xFF\xFFOGP\x00";
-        if (substr($result, 0, strlen($req)) != $req) {
+        if (!str_starts_with($result, $req)) {
             $this->error = 'Not a OGP Server Response (2)';
 
             return false;
@@ -666,7 +670,7 @@ class OGP
         if ("\xFF" == $Type) { //Error?
             $err_message = substr($result, $HeadSize + 8);
             $err_id = $this->getUint($err_message, 8);
-            $this->error = "Server says Error: '".$this->getErrorbyID($err_id)."' (1)";
+            $this->error = "Server says Error: '" . $this->getErrorbyID((int) $this->parseUint($err_id)) . "' (1)";
 
             return false;
         } elseif ("\x01" != $Type) { //must be a default query v1
@@ -772,7 +776,13 @@ class OGP
                 if (1 == $get_MapFields[0][5]) { //bMapAuthor
                     $this->serverInfo['MAPINFO']['MapAuthor'] = $this->getSzString($result2);
                 }
+            } else {
+                // Initialize $get_MapFields with defaults if not set, to avoid undefined variable error
+                // in the bNextMap block below.
+                // Assuming structure similar to getVarBitArray return: array<int, array<int, mixed>>
+                $get_MapFields = [[0, 0, 0, 0, 0, 0]];
             }
+
             if (1 == $get_ServerInfoFields[1][3] && 1 == $get_ServerInfoFields[1][4]) { //bMap && bNextMap
                 $this->serverInfo['NEXTMAPINFO']['MapName'] = $this->getSzString($result2);
                 if (1 == $get_MapFields[0][0]) { //bMapFileName
@@ -973,10 +983,10 @@ class OGP
                 $this_limit_entry['LimitType'] = $this->getVarBitArray($result2);
                 $bLimitLeft = $this_limit_entry['LimitType'][0][0]; //bLimitLeft
 
-                $LimitType = bindec(strrev($this_limit_entry['LimitType'][0][1].
-                    $this_limit_entry['LimitType'][0][2].
-                    $this_limit_entry['LimitType'][0][3].
-                    $this_limit_entry['LimitType'][0][4]));
+                $LimitType = bindec(strrev($this_limit_entry['LimitType'][0][1]
+                    . $this_limit_entry['LimitType'][0][2]
+                    . $this_limit_entry['LimitType'][0][3]
+                    . $this_limit_entry['LimitType'][0][4]));
 
                 //$LimitType = $this->parseUint($LimitType);
                 $this_limit_entry['LimitType'] = $this->parseLimitType($LimitType);
@@ -1005,14 +1015,13 @@ class OGP
      */
     public function parseLimitType($LimitType)
     {
-        switch ($LimitType) {
-            case 0: return 'Time (in seconds)';
-            case 1: return 'Player Score';
-            case 2: return 'Round';
-            case 3: return 'Team Score';
-
-            default: return 'Unknown';
-        }
+        return match ($LimitType) {
+            0 => 'Time (in seconds)',
+            1 => 'Player Score',
+            2 => 'Round',
+            3 => 'Team Score',
+            default => 'Unknown',
+        };
     }
 
     /**
@@ -1022,7 +1031,7 @@ class OGP
      * of the type VarBitArray and returns an
      * array filled with known values
      *
-     * @param VarBitArray $array The AddOnFlags stored in a VarBitArray
+     * @param array<int, array<int, mixed>> $array The AddOnFlags stored in a VarBitArray
      *
      * @return mixed The parsed AddOnFlags, false on failure
      */
@@ -1067,7 +1076,7 @@ class OGP
      * of the type VarBitArray and returns an
      * array filled with known values
      *
-     * @param VarBitArray $array The PlayerFlags stored in a VarBitArray
+     * @param array<int, array<int, mixed>> $array The PlayerFlags stored in a VarBitArray
      *
      * @return mixed The parsed PlayerFlags, false on failure
      */
@@ -1123,12 +1132,15 @@ class OGP
         }
 
         $new_flags = [];
-        $bType = bindec(strrev($this->serverInfo['ServerFlags'][0][0].
-            $this->serverInfo['ServerFlags'][0][1]));
+        $bType = bindec(strrev($this->serverInfo['ServerFlags'][0][0]
+            . $this->serverInfo['ServerFlags'][0][1]));
         switch ($bType) {
-            case 0: $new_flags['bType'] = 'Unknown'; break;
-            case 1: $new_flags['bType'] = 'Listen'; break;
-            case 2: $new_flags['bType'] = 'Dedicated'; break;
+            case 0: $new_flags['bType'] = 'Unknown';
+                break;
+            case 1: $new_flags['bType'] = 'Listen';
+                break;
+            case 2: $new_flags['bType'] = 'Dedicated';
+                break;
         }
 
         if (1 == $this->serverInfo['ServerFlags'][0][2]) { //bPassword
@@ -1143,18 +1155,17 @@ class OGP
             $new_flags['Proxy'] = false;
         }
 
-        $OperatingSystem = bindec(strrev($this->serverInfo['ServerFlags'][0][4].
-            $this->serverInfo['ServerFlags'][0][5].
-            $this->serverInfo['ServerFlags'][0][6]));
+        $OperatingSystem = bindec(strrev($this->serverInfo['ServerFlags'][0][4]
+            . $this->serverInfo['ServerFlags'][0][5]
+            . $this->serverInfo['ServerFlags'][0][6]));
 
-        switch ($OperatingSystem) {
-            case 0: $new_flags['OperatingSystem'] = 'Unknown'; break;
-            case 1: $new_flags['OperatingSystem'] = 'Windows'; break;
-            case 2: $new_flags['OperatingSystem'] = 'Linux'; break;
-            case 3: $new_flags['OperatingSystem'] = 'Macintosh'; break;
-
-            default: $new_flags['OperatingSystem'] = 'Unknown ('.$OperatingSystem.')';
-        }
+        $new_flags['OperatingSystem'] = match ($OperatingSystem) {
+            0 => 'Unknown',
+            1 => 'Windows',
+            2 => 'Linux',
+            3 => 'Macintosh',
+            default => 'Unknown (' . $OperatingSystem . ')',
+        };
 
         $this->serverInfo['ServerFlags'] = $new_flags;
 
@@ -1180,17 +1191,15 @@ class OGP
         4 - Invalid Query: The query body is incorrect
         */
 
-        $id = $this->parseUint($id);
-
-        switch ($id) {
-            case 0: return '0 - Banned';
-            case 1: return '1 - Invalid Type: The query type in header is unkown';
-            case 2: return '2 - Invalid Value: Any value in header is incorrect';
-            case 3: return '3 - Invalid Challenge Number: The challenge number is incorrect';
-            case 4: return '4 - Invalid Query: The query body is incorrect';
-
-            default: return $id.' - Unknown';
-        }
+        /** @var int $id */
+        return match ($id) {
+            0 => '0 - Banned',
+            1 => '1 - Invalid Type: The query type in header is unkown',
+            2 => '2 - Invalid Value: Any value in header is incorrect',
+            3 => '3 - Invalid Challenge Number: The challenge number is incorrect',
+            4 => '4 - Invalid Query: The query body is incorrect',
+            default => $id . ' - Unknown',
+        };
     }
 
     /**
@@ -1199,20 +1208,20 @@ class OGP
      * returns the IP in standart dottet format
      * of the specified UINT32, false on failure.
      *
-     * @param string an integer of type UINT32 (4 bytes string)
+     * @param string $uint an integer of type UINT32 (4 bytes string)
      *
-     * @return string IP in dotted format, false on failure
+     * @return string|false IP in dotted format, false on failure
      */
     public function parseIP($uint)
     {
-        if (strlen($uint) < 4) {
+        if (strlen((string) $uint) < 4) {
             return false;
         }
 
-        return $this->parseUint(substr($uint, 3, 1)).'.'.
-            $this->parseUint(substr($uint, 2, 1)).'.'.
-            $this->parseUint(substr($uint, 1, 1)).'.'.
-            $this->parseUint(substr($uint, 0, 1));
+        return $this->parseUint(substr((string) $uint, 3, 1)) . '.'
+            . $this->parseUint(substr((string) $uint, 2, 1)) . '.'
+            . $this->parseUint(substr((string) $uint, 1, 1)) . '.'
+            . $this->parseUint(substr((string) $uint, 0, 1));
     }
 
     /**
@@ -1225,7 +1234,7 @@ class OGP
      * @param string $string Any string, starting with an unsigned integer of the specified length
      * @param int    $length The type of the unsigned integer to read (8,16,32)
      *
-     * @return string the read unsigned integer of the specified type, false on failure
+     * @return string|false the read unsigned integer of the specified type, false on failure
      */
     public function getUint(&$string, $length = 8)
     {
@@ -1274,7 +1283,7 @@ class OGP
      * @param string $string Any string, starting with a signed integer of the specified length
      * @param int    $length The type of the signed integer to read (8,16,32)
      *
-     * @return string the read signed integer of the specified type, false on failure
+     * @return string|false the read signed integer of the specified type, false on failure
      */
     public function getInt(&$string, $length = 8)
     {
@@ -1300,12 +1309,12 @@ class OGP
      */
     public function parseInt($int)
     {
-        if (1 == strlen($int)) {
-            $int = unpack('cint', $int);
-        } elseif (2 == strlen($int)) {
-            $int = unpack('sint', $int);
-        } elseif (4 == strlen($int)) {
-            $int = unpack('lint', $int);
+        if (1 == strlen((string) $int)) {
+            $int = unpack('cint', (string) $int);
+        } elseif (2 == strlen((string) $int)) {
+            $int = unpack('sint', (string) $int);
+        } elseif (4 == strlen((string) $int)) {
+            $int = unpack('lint', (string) $int);
         }
 
         return $int['int'];
@@ -1319,7 +1328,7 @@ class OGP
      *
      * @param string $string Any string, starting with a VarBitArray
      *
-     * @return VarBitArray an array filled with binary data, false on failure
+     * @return array<int, array<int, mixed>>|false an array filled with binary data, false on failure
      *
      * @see http://www.open-game-protocol.org/spec/ogp_spec_v0.94.htm#VarBitArray_Type VarBitArray Specification
      */
@@ -1336,7 +1345,7 @@ class OGP
             $string = substr($string, 1);
 
             $bin = decbin(ord($c));
-            $bin = str_repeat('0', 8 - strlen($bin)).$bin;
+            $bin = str_repeat('0', 8 - strlen($bin)) . $bin;
 
             $bin_array = [];
             for ($x = 7; $x >= 0; --$x) {
@@ -1360,9 +1369,9 @@ class OGP
      * Writes the array of type VarBitArray to a string
      * containing a binary number.
      *
-     * @param VarBitArray The VarBitArray to parse
+     * @param array<int, array<int, mixed>> $array The VarBitArray to parse
      *
-     * @return string The binary number, false on failure
+     * @return string|false The binary number, false on failure
      */
     public function VarBitArray_toString($array)
     {
@@ -1398,7 +1407,7 @@ class OGP
      *
      * @param string $binary The binary number to parse
      *
-     * @return string The parsed binary string, false on failure
+     * @return string|false The parsed binary string, false on failure
      */
     public function getCharsbyBinary($binary)
     {
@@ -1429,7 +1438,7 @@ class OGP
      *
      * @param string $string The string starting with a null terminated string
      *
-     * @return string The result string
+     * @return string|false The result string
      */
     public function getSzString(&$string)
     {
@@ -1460,7 +1469,7 @@ class OGP
         $ColorSize = $this->getVarUint($string);
 
         $total_size = 0;
-        $ColorSize_p = $this->parseUint($ColorSize_p);
+        $ColorSize_p = $this->parseUint($ColorSize);
         $Data = [];
         while ($total_size < $ColorSize_p) {
             $ColorInfoEntry = $this->getStringColorInfoEntry($string);
@@ -1479,7 +1488,7 @@ class OGP
      *
      * @param string $string Any string starting with a StringColorInfoEntry string
      *
-     * @return array the array filled with the color information
+     * @return array|false the array filled with the color information
      *
      * @see http://www.open-game-protocol.org/spec/ogp_spec_v0.94.htm#StringColorInfoEntry_Type StringColorInfoEntry Specification
      */
@@ -1494,12 +1503,14 @@ class OGP
         $DeltaPosition = $this->getVarUint($string);
 
         $ColorValue = $this->getUint($string, 8);
-        if ($this->parseInt($ColorValue) >= 0x90 ||
-            $this->parseInt($ColorValue) <= 0x9F) {
+        $colorValueInt = $this->parseInt($ColorValue);
+        $ColorValue16 = null;
+        if ($colorValueInt >= 0x90
+            && $colorValueInt <= 0x9F) {
             $ColorValue16 = $this->getUint($string, 16);
         }
 
-        $size_after = strlen($string);
+        $size_after = strlen((string) $string);
         $size = $size_before - $size_after;
 
         return ['DeltaPosition' => $DeltaPosition,
@@ -1515,7 +1526,7 @@ class OGP
      *
      * @param string $string Any string starting with a VarUint
      *
-     * @return string an unsigned integer in a binary string
+     * @return string|false an unsigned integer in a binary string
      *
      * @see http://www.open-game-protocol.org/spec/ogp_spec_v0.94.htm#VarUINT8-32_Type Specification
      */
@@ -1554,7 +1565,7 @@ class OGP
      *
      * @param string $string Any string starting with a VarUint
      *
-     * @return string a signed integer in a binary string
+     * @return string|false a signed integer in a binary string
      *
      * @see http://www.open-game-protocol.org/spec/ogp_spec_v0.94.htm#VarSINT8-32_Type VarSint Specification
      */
@@ -1593,13 +1604,13 @@ class OGP
      */
     public function color_web_to16bit($color)
     {
-        $r = hexdec(substr($color, 0, 2));
-        $g = hexdec(substr($color, 2, 2));
-        $b = hexdec(substr($color, 4, 2));
+        $r = hexdec(substr((string) $color, 0, 2));
+        $g = hexdec(substr((string) $color, 2, 2));
+        $b = hexdec(substr((string) $color, 4, 2));
 
-        $r = round($r / (255 / 31));
-        $g = round($g / (255 / 63));
-        $b = round($b / (255 / 31));
+        $r = (int) round($r / (255 / 31));
+        $g = (int) round($g / (255 / 63));
+        $b = (int) round($b / (255 / 31));
 
         $r = substr(decbin($r), -5);
         $g = substr(decbin($g), -6);
@@ -1609,7 +1620,7 @@ class OGP
         $g = str_pad($g, 6, '0', STR_PAD_LEFT);
         $b = str_pad($b, 5, '0', STR_PAD_LEFT);
 
-        $res = bindec($r.$g.$b);
+        $res = bindec($r . $g . $b);
 
         return $res;
     }
@@ -1629,14 +1640,14 @@ class OGP
         $g = bindec(substr($binary, 5, 6));
         $b = bindec(substr($binary, 11, 5));
 
-        $r = round($r * (255 / 31));
-        $g = round($g * (255 / 63));
-        $b = round($b * (255 / 31));
+        $r = (int) round($r * (255 / 31));
+        $g = (int) round($g * (255 / 63));
+        $b = (int) round($b * (255 / 31));
 
         $r = str_pad(dechex($r), 2, '0', STR_PAD_LEFT);
         $g = str_pad(dechex($g), 2, '0', STR_PAD_LEFT);
         $b = str_pad(dechex($b), 2, '0', STR_PAD_LEFT);
 
-        return strtoupper($r.$g.$b);
+        return strtoupper($r . $g . $b);
     }
 }
